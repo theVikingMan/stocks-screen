@@ -1,0 +1,55 @@
+{
+  "name": "stocks-screen",
+  "version": "1.0.0",
+  "description": "Single webpage for specific stock information",
+  "main": "index.js",
+  "scripts": {
+    "dev": "webpack serve --open",
+    "server-start": "nodemon server/index.js",
+    "client-dev": "webpack --config ./webpack.config.js --mode development -w",
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/theVikingMan/stocks-screen.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/theVikingMan/stocks-screen/issues"
+  },
+  "homepage": "https://github.com/theVikingMan/stocks-screen#readme",
+  "dependencies": {
+    "axios": "^0.27.2",
+    "cors": "^2.8.5",
+    "date-fns": "^2.28.0",
+    "dotenv": "^16.0.0",
+    "express": "^4.18.1",
+    "moment": "^2.29.3",
+    "react": "^18.1.0",
+    "react-dom": "^18.1.0",
+    "recharts": "^2.1.9",
+    "styled-components": "^5.3.5"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.17.10",
+    "@babel/plugin-transform-runtime": "^7.17.10",
+    "@babel/preset-env": "^7.17.10",
+    "@babel/preset-react": "^7.16.7",
+    "babel-core": "^6.26.3",
+    "babel-loader": "^8.2.5",
+    "babel-preset-env": "^1.7.0",
+    "babel-preset-react": "^6.24.1",
+    "eslint": "^8.15.0",
+    "eslint-config-airbnb": "^19.0.4",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-jsx-a11y": "^6.5.1",
+    "eslint-plugin-react": "^7.29.4",
+    "eslint-plugin-react-hooks": "^4.5.0",
+    "html-webpack-plugin": "^5.5.0",
+    "webpack": "^5.72.0",
+    "webpack-cli": "^4.9.2",
+    "webpack-dev-server": "^4.9.0"
+  }
+}
