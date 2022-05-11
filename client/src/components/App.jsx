@@ -1,3 +1,4 @@
+/* eslint-disable import/extensions */
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import styled from 'styled-components';
@@ -10,7 +11,6 @@ import {
   Tooltip,
   CartesianGrid,
 } from 'recharts';
-import { parseISO, format } from 'date-fns';
 import moment from 'moment';
 
 import Input from './Input.jsx';
@@ -18,23 +18,40 @@ import PriceTable from './PriceTable.jsx';
 
 export default function App() {
   const [stockPriceData, setStockPriceData] = useState([]);
-  const [quote, setQuote] = useState('TSLA');
+  const [baseQuote, setBaseQuote] = useState('TSLA');
+  const [quotes, setQuote] = useState(new Set([]));
   const [searchQuoteText, setSearchQuoteText] = useState('TSLA');
-  let maxY = 0;
+  const [timeSeriesDataCloseCurrent, setTimeSeriesDataCloseCurrent] = useState([]);
+  const [timeSeriesDataAllCurrent, setTimeSeriesDataAllCurrent] = useState([]);
+  const [maxY, setMaxY] = useState(0);
 
-  let timeSeriesDataClose = [];
-  let timeSeriesDataAll = [];
-  if (stockPriceData.length !== 0) {
-    Object.keys(stockPriceData[0]['Time Series (Daily)']).forEach((key) => {
-      maxY = Math.max(maxY, stockPriceData[0]['Time Series (Daily)'][key]['4. close'] * 1.3);
-      timeSeriesDataClose.push({ date: key, value: stockPriceData[0]['Time Series (Daily)'][key]['4. close'] });
-      timeSeriesDataAll.push({ date: key, value: stockPriceData[0]['Time Series (Daily)'][key] });
-    });
-  }
-  console.log(stockPriceData);
-  console.log(timeSeriesDataClose);
+  console.log(timeSeriesDataCloseCurrent)
+  console.log(quotes);
 
-  const getStockPriceData = () => {
+  const copyTimeSeriesDataCloseCurrent = [];
+  const copyTimeSeriesDataAllCurrent = [];
+
+  const getStockPriceData = (quote = baseQuote) => {
+    axios({
+      method: 'GET',
+      url: 'http://127.0.0.1:3001/stocks',
+      params: {
+        quote,
+        functionType: 'TIME_SERIES_DAILY',
+      },
+    })
+      .then(({ data }) => {
+        setBaseQuote(searchQuoteText);
+        setStockPriceData([data]);
+      })
+      .catch((err) => {
+        console.log(err.response);
+        console.log(err.status);
+      });
+  };
+
+  const addStocks = () => {
+    setQuote(quotes => new Set([...quotes, searchQuoteText]));
     axios({
       method: 'GET',
       url: 'http://127.0.0.1:3001/stocks',
@@ -44,8 +61,17 @@ export default function App() {
       },
     })
       .then(({ data }) => {
+        console.log(data)
+        let i = 0;
         // eslint-disable-next-line no-shadow
-        setStockPriceData(() => ([data]));
+        const copyTimeSeriesDataCloseCurrent = [...timeSeriesDataCloseCurrent];
+        Object.keys(data['Time Series (Daily)']).forEach((key) => {
+          setMaxY(Math.max(maxY, data['Time Series (Daily)'][key]['4. close'] * 1.2));
+          copyTimeSeriesDataCloseCurrent[i][searchQuoteText] = data['Time Series (Daily)'][key]['4. close'];
+          i += 1;
+        });
+        console.log(copyTimeSeriesDataCloseCurrent);
+        setTimeSeriesDataCloseCurrent(copyTimeSeriesDataCloseCurrent);
       })
       .catch((err) => {
         console.log(err.response);
@@ -57,8 +83,22 @@ export default function App() {
     getStockPriceData();
   }, []);
 
-  const toDollarFormat = (number) => (`$${number.toFixed(2)}`);
+  useEffect(() => {
+    setQuote(new Set([searchQuoteText]));
+    let baseMaxY = 0;
+    if (stockPriceData.length !== 0) {
+      Object.keys(stockPriceData[0]['Time Series (Daily)']).forEach((key) => {
+        setMaxY(Math.max(baseMaxY, stockPriceData[0]['Time Series (Daily)'][key]['4. close'] * 1.4));
+        copyTimeSeriesDataCloseCurrent.push({ date: key, [baseQuote]: stockPriceData[0]['Time Series (Daily)'][key]['4. close'] });
+        copyTimeSeriesDataAllCurrent.push({ date: key, [baseQuote]: stockPriceData[0]['Time Series (Daily)'][key] });
+      });
+      setTimeSeriesDataCloseCurrent(copyTimeSeriesDataCloseCurrent);
+      setTimeSeriesDataAllCurrent(copyTimeSeriesDataAllCurrent);
+      console.log(quotes);
+    }
+  }, [stockPriceData]);
 
+  const toDollarFormat = (number) => (`$${number.toFixed(2)}`);
   const toDateFormat = (str) => {
     const newDate = moment(str).format('MM-YYYY');
     return newDate;
@@ -69,7 +109,7 @@ export default function App() {
       <GlobalPage>
         <TopStockBar>
           <span>
-            <h3>{`Stock prices for ${quote}: `}</h3>
+            <h3>{`Stock prices for ${baseQuote}: `}</h3>
           </span>
           <Input
             setQuote={setQuote}
@@ -78,15 +118,17 @@ export default function App() {
             setStockPriceData={setStockPriceData}
             stockPriceData={stockPriceData}
             getStockPriceData={getStockPriceData}
+            addStocks={addStocks}
+            setBaseQuote={setBaseQuote}
           />
         </TopStockBar>
 
-        {timeSeriesDataClose && (
+        {timeSeriesDataCloseCurrent && (
           <StockInfoContainer>
             <StockChart>
               <ResponsiveContainer width="100%" height={500}>
                 <AreaChart
-                  data={timeSeriesDataClose}
+                  data={timeSeriesDataCloseCurrent}
                   margin={{
                     top: 5,
                     right: 30,
@@ -100,22 +142,24 @@ export default function App() {
                       <stop offset="75%" stopColor="#24251B7" stopOpacity={0.05} />
                     </linearGradient>
                   </defs>
-                  <Area dataKey="value" stroke="#2451B7" fill="url(#color)" />
-
                   <XAxis
                     dataKey="date"
                     tickLine={false}
-                    tick={{ stroke: 'white' }}
                     tickFormatter={toDateFormat}
+                    style={{ fill: 'rgb(199, 202, 224)' }}
                   />
                   <YAxis
-                    dataKey="value"
-                    type="number"
                     domain={[0, maxY]}
-                    tick={{ stroke: 'white' }}
+                    type="number"
                     tickCount={7}
                     tickFormatter={toDollarFormat}
+                    style={{ fill: 'rgb(199, 202, 224)' }}
                   />
+                  <Area dataKey={baseQuote} stroke="#2451B7" fill="url(#color)" />
+                  {timeSeriesDataAllCurrent.length > 0 && (
+                    Array.from(quotes).map((q) => (
+                      <Area dataKey={q} stroke="#2451B7" fill="url(#color)" />
+                    )))}
                   <Tooltip />
                   <CartesianGrid
                     opacity={0.1}
@@ -126,9 +170,12 @@ export default function App() {
             </StockChart>
           </StockInfoContainer>
         )}
-        <PriceTable
-          priceData={timeSeriesDataAll}
-        />
+        {(timeSeriesDataAllCurrent.length > 0 && timeSeriesDataAllCurrent[0][baseQuote] !== undefined) && (
+          <PriceTable
+            priceData={timeSeriesDataAllCurrent}
+            baseQuote={baseQuote}
+          />
+        )}
       </GlobalPage>
     </div>
   );
@@ -157,9 +204,3 @@ const StockInfoContainer = styled.div`
 const StockChart = styled.div`
   width: 100%;
 `;
-
-// {timeSeriesData !== undefined ? Object.keys(timeSeriesData).map((key) => (
-//   <ul key={key}>
-//     {timeSeriesData[key]['4. close']}
-//   </ul>
-// )) : <div></div>}
