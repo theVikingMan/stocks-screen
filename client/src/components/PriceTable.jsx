@@ -1,9 +1,11 @@
 /* eslint-disable react/prop-types */
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
+import moment from 'moment';
 
-export default function PriceTable({ priceData }) {
-  console.log(priceData);
+export default function PriceTable({ priceData, baseQuote }) {
+  console.log(baseQuote)
+  console.log(priceData)
   return (
     <div>
       {priceData && (
@@ -11,6 +13,7 @@ export default function PriceTable({ priceData }) {
           <table>
             <thead>
               <tr>
+                <th>Date</th>
                 <th>Open</th>
                 <th>High</th>
                 <th>Low</th>
@@ -20,12 +23,13 @@ export default function PriceTable({ priceData }) {
             </thead>
             <tbody>
               {priceData.map((dayData) => (
-                <tr>
-                  <td>{dayData.value["1. open"]}</td>
-                  <td>{dayData.value["2. high"]}</td>
-                  <td>{dayData.value["3. low"]}</td>
-                  <td>{dayData.value["4. close"]}</td>
-                  <td>{dayData.value["5. volume"]}</td>
+                <tr key={dayData.date}>
+                  <td>{moment(dayData.date).format('MMM Do YYYY')}</td>
+                  <td>{`$${parseInt(dayData[baseQuote]['1. open'], 10).toLocaleString('en-US')}`}</td>
+                  <td>{`$${parseInt(dayData[baseQuote]['2. high'], 10).toLocaleString('en-US')}`}</td>
+                  <td>{`$${parseInt(dayData[baseQuote]['3. low'], 10).toLocaleString('en-US')}`}</td>
+                  <td>{`$${parseInt(dayData[baseQuote]['4. close'], 10).toLocaleString('en-US')}`}</td>
+                  <td>{`$${parseInt(dayData[baseQuote]['5. volume'], 10).toLocaleString('en-US')}`}</td>
                 </tr>
               ))}
             </tbody>
@@ -38,7 +42,23 @@ export default function PriceTable({ priceData }) {
 
 const TableContainer = styled.div`
   display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 1rem;
+  padding-top: 40px;
+  padding-left: 115px;
+  padding-bottom: 2rem;
 `;
+
+// const TableHeader = styled.div`
+//   border: 1px solid #ffffff;
+//   text-align: left;
+//   padding: 8px;
+//   font-size: 32px;
+//   background-color: rgb(117, 201, 250);
+// `;
+
+// const TableData = styled.div`
+//   border: 1px solid #ffffff;
+//   text-align: left;
+//   padding: 8px;
+//   font-size: 32px;
+//   background-color: rgb(205, 235, 253);
+// `;

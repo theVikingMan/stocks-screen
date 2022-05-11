@@ -6,26 +6,32 @@ body {
 
 table {
   border-collapse: collapse;
-  width: 100%;
+  width: 95%;
+  color:whitesmoke;
 }
 
 th,
 td {
-  border: 1px solid #ffffff;
-  text-align: left;
-  padding: 8px;
-  font-size: 32px;
+  border: 1px solid #ffffff53;
+  text-align: center;
+  padding: 5px;
+  font-size: 18px;
 }
 
 th {
-  background-color: rgb(117, 201, 250);
+  background-color: #2450b797;
 }
 
 td {
-  background-color: rgb(205, 235, 253);
+  background-color: #4b629897;
 }
 
-form {
+.recharts-cartesian-axis-tick {
+  font-size: 15px;
+  font-family: sans-serif;
+}
+
+/* form {
   display: flex;
   gap: 5px;
 }
@@ -37,4 +43,4 @@ form td:last-child {
 
 form * {
   font-size: 28px;
-}
+} */
